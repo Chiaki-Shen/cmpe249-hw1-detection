@@ -1,0 +1,168 @@
+# CMPE 249 HW, command log (all on Ubuntu 22.04, RTX 2070)
+
+## S1: record machine (Oct 4)
+mkdir -p ~/cmpe249-hw/notes
+nvidia-smi | tee ~/cmpe249-hw/notes/env.txt
+
+## S2: venv + PyTorch (Oct 4)
+python3 -m venv ~/det_env
+source ~/det_env/bin/activate
+pip install --upgrade pip
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+python -c "import torch; print(torch.__version__, torch.cuda.is_available(), torch.cuda.get_device_name(0))"
+# -> 2.14.1+cu126 True NVIDIA GeForce RTX 2070
+
+## S3: detection libraries (Oct 5)
+pip install transformers ultralytics pycocotools opencv-python matplotlib pyarrow
+python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+# -> 2.14.1+cu126 True
+pip freeze >> ~/cmpe249-hw/notes/env.txt
+
+## S4: clone repo + self-tests (Oct 16)
+source ~/det_env/bin/activate
+cd ~/cmpe249-hw
+git clone --depth 1 https://github.com/lkk688/DeepDataMiningLearning.git
+cd DeepDataMiningLearning
+python -m DeepDataMiningLearning.ngdet.taxonomy
+python -m DeepDataMiningLearning.ngdet.evaluator
+# -> sanity mAP=1.000 (small=-1: no small objects; cyclist=0.0: no cyclist GT in synthetic data)
+
+## S5: COCO val2017 (Oct 16)
+mkdir -p ~/cmpe249-hw/datasets/coco
+cd ~/cmpe249-hw/datasets/coco
+wget http://images.cocodataset.org/zips/val2017.zip
+wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip
+unzip -q val2017.zip
+unzip -q annotations_trainval2017.zip
+ls val2017 | wc -l
+# -> 5000
+python -c "import json; d=json.load(open('annotations/instances_val2017.json')); print(len(d['images']), 'images', len(d['annotations']), 'boxes'); print(d['annotations'][0])"
+# -> 5000 images 36781 boxes
+
+## S6: link existing KITTI copy (Oct 16)
+ls ~/apollo/data/kitti/data_object_image_2/training/
+# -> calib image_2 label_2 (7481 images, 7481 labels)
+mkdir -p ~/cmpe249-hw/datasets/kitti/training
+ln -s ~/apollo/data/kitti/data_object_image_2/training/image_2 ~/cmpe249-hw/datasets/kitti/training/image_2
+ln -s ~/apollo/data/kitti/data_object_image_2/training/label_2 ~/cmpe249-hw/datasets/kitti/training/label_2
+cd ~/cmpe249-hw/DeepDataMiningLearning
+python -m DeepDataMiningLearning.ngdet.datasets --name kitti --root ~/cmpe249-hw/datasets/kitti --max-images 3
+# -> auto split (seed 42): train 5984 / val 1497; evaluation uses train split
+
+## S7: smoke test, 50 imgs/dataset, thr 0.3 (Oct 16)
+python -m DeepDataMiningLearning.ngdet.run_eval \
+  --models torchvision:fasterrcnn_resnet50_fpn_v2 yolo:yolo11x.pt hf_detr:PekingU/rtdetr_r50vd \
+  --datasets coco kitti \
+  --roots coco=$HOME/cmpe249-hw/datasets/coco/val2017 kitti=$HOME/cmpe249-hw/datasets/kitti \
+  --coco-ann $HOME/cmpe249-hw/datasets/coco/annotations/instances_val2017.json \
+  --max-images 50 --score-thr 0.3 --device cuda --video --video-max 20 \
+  --out-dir $HOME/cmpe249-hw/runs/smoke
+
+## S8: full runs, thr 0.3 (Oct 17)
+time python -m DeepDataMiningLearning.ngdet.run_eval \
+  --models yolo:yolo11x.pt --datasets coco kitti \
+  --roots coco=$HOME/cmpe249-hw/datasets/coco/val2017 kitti=$HOME/cmpe249-hw/datasets/kitti \
+  --coco-ann $HOME/cmpe249-hw/datasets/coco/annotations/instances_val2017.json \
+  --max-images 0 --score-thr 0.3 --device cuda --video --video-max 40 \
+  --out-dir $HOME/cmpe249-hw/runs/full_yolo11x \
+  2>&1 | grep --line-buffered -v "'half' is deprecated" | tee $HOME/cmpe249-hw/runs/full_yolo11x.log
+for M in torchvision:fasterrcnn_resnet50_fpn_v2 hf_detr:PekingU/rtdetr_r50vd; do
+  NAME=$(echo $M | cut -d: -f1)
+  ( time python -m DeepDataMiningLearning.ngdet.run_eval --models $M --datasets coco kitti \
+      --roots coco=$HOME/cmpe249-hw/datasets/coco/val2017 kitti=$HOME/cmpe249-hw/datasets/kitti \
+      --coco-ann $HOME/cmpe249-hw/datasets/coco/annotations/instances_val2017.json \
+      --max-images 0 --score-thr 0.3 --device cuda --video --video-max 40 \
+      --out-dir $HOME/cmpe249-hw/runs/full_$NAME ) 2>&1 | tee $HOME/cmpe249-hw/runs/full_$NAME.log
+done
+# -> mAP COCO/KITTI: FRCNN 0.481/0.234 (17m25s), YOLO11x 0.492/0.229 (6m17s), RT-DETR 0.492/0.239 (9m16s)
+
+# S8 input-resolution inspection
+grep -n "predict(" -A 2 ~/cmpe249-hw/DeepDataMiningLearning/DeepDataMiningLearning/ngdet/detectors/yolo.py
+cat ~/.cache/huggingface/hub/models--PekingU--rtdetr_r50vd/snapshots/*/preprocessor_config.json
+python -c "import torchvision; m=torchvision.models.detection.fasterrcnn_resnet50_fpn_v2(); print(m.transform)"
+# -> YOLO imgsz 640 letterbox (KITTI ~640x224, shape kept); RT-DETR 640x640 stretched, do_normalize=false;
+#    FRCNN min 800 / max 1333 (KITTI -> 1333x402, shape kept)
+
+## S9: threshold experiment, thr 0.001, all 3 models (Oct 17)
+time python -m DeepDataMiningLearning.ngdet.run_eval \
+  --models yolo:yolo11x.pt --datasets coco kitti \
+  --roots coco=$HOME/cmpe249-hw/datasets/coco/val2017 kitti=$HOME/cmpe249-hw/datasets/kitti \
+  --coco-ann $HOME/cmpe249-hw/datasets/coco/annotations/instances_val2017.json \
+  --max-images 0 --score-thr 0.001 --device cuda \
+  --out-dir $HOME/cmpe249-hw/runs/thr001_yolo11x \
+  2>&1 | grep --line-buffered -v "'half' is deprecated" | tee $HOME/cmpe249-hw/runs/thr001_yolo11x.log
+for M in torchvision:fasterrcnn_resnet50_fpn_v2 hf_detr:PekingU/rtdetr_r50vd; do
+  NAME=$(echo $M | cut -d: -f1)
+  ( time python -m DeepDataMiningLearning.ngdet.run_eval --models $M --datasets coco kitti \
+      --roots coco=$HOME/cmpe249-hw/datasets/coco/val2017 kitti=$HOME/cmpe249-hw/datasets/kitti \
+      --coco-ann $HOME/cmpe249-hw/datasets/coco/annotations/instances_val2017.json \
+      --max-images 0 --score-thr 0.001 --device cuda \
+      --out-dir $HOME/cmpe249-hw/runs/thr001_$NAME ) 2>&1 | tee $HOME/cmpe249-hw/runs/thr001_$NAME.log
+done
+# -> mAP COCO/KITTI: FRCNN 0.492/0.236, YOLO11x 0.558/0.239, RT-DETR 0.517/0.243
+#    note: torchvision FRCNN keeps its internal box_score_thresh=0.05 regardless of --score-thr
+
+## S10: latency + GPU memory, batch 1, KITTI image 000008.png (1242x375), warmup 5, iters 50 (Oct 17)
+gcc --version
+# -> gcc 11.4.0 (needed for torch.compile)
+nvidia-smi --query-gpu=memory.used --format=csv
+# -> idle baseline 314 MiB (Apollo container stopped)
+cd ~/cmpe249-hw/DeepDataMiningLearning
+IMG=$HOME/cmpe249-hw/datasets/kitti/training/image_2/000008.png
+for M in torchvision:fasterrcnn_resnet50_fpn_v2 yolo:yolo11x.pt hf_detr:PekingU/rtdetr_r50vd; do
+  NAME=$(echo $M | cut -d: -f1)
+  nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits -lms 200 > $HOME/cmpe249-hw/runs/mem_$NAME.txt &
+  SMI=$!
+  python -m DeepDataMiningLearning.ngdet.latency --models $M \
+    --accel fp32 fp16 compile --iters 50 --image $IMG \
+    --out-dir $HOME/cmpe249-hw/runs/latency_$NAME \
+    2>&1 | grep --line-buffered -v "'half' is deprecated" | tee $HOME/cmpe249-hw/runs/latency_$NAME.log
+  kill $SMI
+  echo ">>> $M peak GPU memory (MiB): $(sort -n $HOME/cmpe249-hw/runs/mem_$NAME.txt | tail -1)"
+done
+# -> FRCNN  fp32 72.9ms/13.7FPS  fp16 41.7ms/24.0FPS (x1.75)  compile 89.0ms (x0.82, graph break in torchvision poolers.py:104)  peak 1613 MiB
+# -> YOLO11x fp32 19.7ms/50.7FPS fp16 18.6ms/53.7FPS (x1.06)  compile not supported  peak 967 MiB
+# -> RT-DETR fp32 41.9ms/23.9FPS fp16 30.8ms/32.4FPS (x1.36)  compile 37.3ms (x1.12)  peak 947 MiB
+
+## S11: combined report, thr 0.001 (Oct 17)
+mkdir -p ~/cmpe249-hw/runs/combined_thr001
+cd ~/cmpe249-hw/runs
+python -c "
+import json
+m = []
+for d in ['thr001_torchvision', 'thr001_yolo11x', 'thr001_hf_detr']:
+    m += json.load(open(d + '/metrics.json'))
+json.dump(m, open('combined_thr001/metrics.json', 'w'), indent=2)
+print(len(m), 'runs merged')
+"
+cd ~/cmpe249-hw/DeepDataMiningLearning
+python -m DeepDataMiningLearning.ngdet.report --metrics $HOME/cmpe249-hw/runs/combined_thr001/metrics.json
+# -> gap COCO-KITTI: FRCNN +0.256, YOLO11x +0.319, RT-DETR +0.274
+
+## S12: speed vs accuracy plot (Oct 17)
+mkdir -p ~/cmpe249-hw/scripts ~/cmpe249-hw/notes/figures
+sed -i 's/sharex=True)/sharex=True, sharey=True)/' ~/cmpe249-hw/scripts/plot_speed_accuracy.py
+sed -i 's/    ax.grid(alpha=0.3)/    ax.grid(alpha=0.3)\n    ax.set_ylim(0, 0.6)/' ~/cmpe249-hw/scripts/plot_speed_accuracy.py
+python ~/cmpe249-hw/scripts/plot_speed_accuracy.py
+
+## S13: failure analysis frame dumps (Oct 17-19)
+# dumped all frames of the 3 KITTI videos (thr 0.3 runs) to runs/frames/{frcnn,yolo,rtdetr}/NN.png
+# frame N = line N+1 of datasets/kitti/ImageSets/train.txt
+
+## S14: slide numbers and verification (Oct 19)
+sed -n '40,210p' ~/cmpe249-hw/DeepDataMiningLearning/DeepDataMiningLearning/ngdet/taxonomy.py
+# -> driving3 exact case-insensitive match; Misc and DontCare dropped
+python -c "from torchvision.models.detection import FasterRCNN_ResNet50_FPN_V2_Weights as W; print(W.DEFAULT)"
+# -> COCO_V1
+grep -n "^iou" "$(python -c 'import ultralytics,os;print(os.path.dirname(ultralytics.__file__))')/cfg/default.yaml"
+# -> iou: 0.7 (ngdet yolo adapter passes no iou)
+cd ~/cmpe249-hw/runs
+grep -H -E "area=   all \| maxDets=100|^(torchvision|yolo|hf_detr):" thr001_*.log
+grep -H -E "Precision .*area=( small|medium| large)" thr001_*.log
+grep -n -i "fp32\|fp16\|compile" latency_yolo.log
+# -> YOLO compile skipped: backend does not support accel='compile'
+# created scripts/inspect_frame.py (per-box predictions vs KITTI labels, thr 0.3, library re-run outside ngdet)
+cd ~/cmpe249-hw/DeepDataMiningLearning
+python ~/cmpe249-hw/scripts/inspect_frame.py 005663 2>&1 | tee ~/cmpe249-hw/notes/frame35_inspect.txt
+for N in 7 9 15; do ID=$(sed -n "$((N+1))p" ~/cmpe249-hw/datasets/kitti/ImageSets/train.txt); echo "### frame $N = $ID"; cat ~/cmpe249-hw/datasets/kitti/training/label_2/$ID.txt; python ~/cmpe249-hw/scripts/inspect_frame.py $ID; done 2>&1 | tee ~/cmpe249-hw/notes/frames07_09_inspect.txt
+for N in 20 24; do ID=$(sed -n "$((N+1))p" ~/cmpe249-hw/datasets/kitti/ImageSets/train.txt); echo "### frame $N = $ID"; cat ~/cmpe249-hw/datasets/kitti/training/label_2/$ID.txt; python ~/cmpe249-hw/scripts/inspect_frame.py $ID; done 2>&1 | tee ~/cmpe249-hw/notes/frames20_24_inspect.txt

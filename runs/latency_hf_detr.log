@@ -1,0 +1,11 @@
+Benchmarking on NVIDIA GeForce RTX 2070, image (1242, 375), warmup=5 iters=50
+Loading weights:   0%|          | 0/764 [00:00<?, ?it/s]Loading weights:  66%|██████▌   | 504/764 [00:00<00:00, 5038.60it/s]Loading weights: 100%|██████████| 764/764 [00:00<00:00, 4976.98it/s]
+  hf_detr:rtdetr_r50vd                     [fp32    ]    41.9 ms     23.9 FPS  x1.00
+Loading weights:   0%|          | 0/764 [00:00<?, ?it/s]Loading weights:  72%|███████▏  | 551/764 [00:00<00:00, 5462.66it/s]Loading weights: 100%|██████████| 764/764 [00:00<00:00, 5210.60it/s]
+W1017 11:56:50.674000 6390 torch/_inductor/utils.py:1806] [0/0] Not enough SMs to use max_autotune_gemm mode
+  hf_detr:rtdetr_r50vd                     [compile ]    37.3 ms     26.8 FPS  x1.12
+Loading weights:   0%|          | 0/764 [00:00<?, ?it/s]Loading weights:  65%|██████▌   | 500/764 [00:00<00:00, 4997.65it/s]Loading weights: 100%|██████████| 764/764 [00:00<00:00, 4896.32it/s]
+  hf_detr:rtdetr_r50vd                     [fp16    ]    30.8 ms     32.4 FPS  x1.36
+
+Saved /home/a/cmpe249-hw/runs/latency_hf_detr/latency_report.md
+Saved /home/a/cmpe249-hw/runs/latency_hf_detr/latency_fps.png

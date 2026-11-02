@@ -1,0 +1,41 @@
+W1017 11:55:29.163000 6066 torch/_inductor/utils.py:1806] [0/0_1] Not enough SMs to use max_autotune_gemm mode
+/home/a/det_env/lib/python3.10/site-packages/torchvision/_meta_registrations.py:173: FutureWarning: `create_unbacked_symint` is deprecated, please use `new_dynamic_size` instead
+  num_to_keep = ctx.create_unbacked_symint()
+/home/a/det_env/lib/python3.10/site-packages/torchvision/_meta_registrations.py:173: FutureWarning: `create_unbacked_symint` is deprecated, please use `new_dynamic_size` instead
+  num_to_keep = ctx.create_unbacked_symint()
+/home/a/det_env/lib/python3.10/site-packages/torchvision/_meta_registrations.py:173: FutureWarning: `create_unbacked_symint` is deprecated, please use `new_dynamic_size` instead
+  num_to_keep = ctx.create_unbacked_symint()
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0] Graph break from `Tensor.item()`, consider setting:
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0]     torch._dynamo.config.capture_scalar_outputs = True
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0] or:
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0]     env TORCHDYNAMO_CAPTURE_SCALAR_OUTPUTS=1
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0] to include these operations in the captured graph.
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0] 
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0] Graph break: from user code at:
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0]   File "/home/a/det_env/lib/python3.10/site-packages/torchvision/models/detection/generalized_rcnn.py", line 118, in torch_dynamo_resume_in_forward_at_117
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0]     detections, detector_losses = self.roi_heads(features, proposals, images.image_sizes, targets)
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0]   File "/home/a/det_env/lib/python3.10/site-packages/torchvision/models/detection/roi_heads.py", line 772, in forward
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0]     box_features = self.box_roi_pool(features, proposals, image_shapes)
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0]   File "/home/a/det_env/lib/python3.10/site-packages/torchvision/ops/poolers.py", line 310, in forward
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0]     self.scales, self.map_levels = _setup_scales(
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0]   File "/home/a/det_env/lib/python3.10/site-packages/torchvision/ops/poolers.py", line 122, in _setup_scales
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0]     scales = [_infer_scale(feat, original_input_shape) for feat in features]
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0]   File "/home/a/det_env/lib/python3.10/site-packages/torchvision/ops/poolers.py", line 122, in <listcomp>
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0]     scales = [_infer_scale(feat, original_input_shape) for feat in features]
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0]   File "/home/a/det_env/lib/python3.10/site-packages/torchvision/ops/poolers.py", line 104, in _infer_scale
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0]     scale = 2 ** float(torch.tensor(approx_scale).log2().round())
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0] 
+W1017 11:55:43.958000 6066 torch/_dynamo/variables/tensor.py:1841] [14/0] 
+/home/a/det_env/lib/python3.10/site-packages/torchvision/_meta_registrations.py:173: FutureWarning: `create_unbacked_symint` is deprecated, please use `new_dynamic_size` instead
+  num_to_keep = ctx.create_unbacked_symint()
+/home/a/det_env/lib/python3.10/site-packages/torchvision/_meta_registrations.py:173: FutureWarning: `create_unbacked_symint` is deprecated, please use `new_dynamic_size` instead
+  num_to_keep = ctx.create_unbacked_symint()
+/home/a/det_env/lib/python3.10/site-packages/torchvision/_meta_registrations.py:173: FutureWarning: `create_unbacked_symint` is deprecated, please use `new_dynamic_size` instead
+  num_to_keep = ctx.create_unbacked_symint()
+Benchmarking on NVIDIA GeForce RTX 2070, image (1242, 375), warmup=5 iters=50
+  torchvision:fasterrcnn_resnet50_fpn_v2   [fp32    ]    72.9 ms     13.7 FPS  x1.00
+  torchvision:fasterrcnn_resnet50_fpn_v2   [compile ]    89.0 ms     11.2 FPS  x0.82
+  torchvision:fasterrcnn_resnet50_fpn_v2   [fp16    ]    41.7 ms     24.0 FPS  x1.75
+
+Saved /home/a/cmpe249-hw/runs/latency_torchvision/latency_report.md
+Saved /home/a/cmpe249-hw/runs/latency_torchvision/latency_fps.png

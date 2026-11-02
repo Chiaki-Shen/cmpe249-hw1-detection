@@ -1,0 +1,101 @@
+
+=== YOLO11x: 24 predictions >= 0.3 ===
+native       unified    score  box x1,y1,x2,y2        best GT (IoU)
+bicycle      cyclist     0.43  23,171,60,209          none
+bicycle      cyclist     0.55  79,173,123,202         none
+person       person      0.80  159,153,192,229        Pedestrian 0.78
+person       person      0.64  221,155,237,206        Pedestrian 0.72
+person       person      0.69  254,153,274,208        Pedestrian 0.81
+bicycle      cyclist     0.30  272,177,295,194        Pedestrian 0.01
+person       person      0.45  493,167,514,221        Cyclist 0.46
+bicycle      cyclist     0.59  493,191,513,229        Cyclist 0.25
+bicycle      cyclist     0.73  524,189,547,227        Cyclist 0.27
+person       person      0.54  526,164,547,218        Cyclist 0.34
+person       person      0.60  551,171,564,206        Cyclist 0.10
+person       person      0.84  580,156,620,280        Pedestrian 0.72
+person       person      0.84  617,156,662,273        Pedestrian 0.72
+person       person      0.87  645,158,709,302        Pedestrian 0.86
+person       person      0.72  694,155,741,287        Pedestrian 0.21
+bench        (dropped)   0.36  841,215,903,261        Pedestrian 0.08
+person       person      0.89  861,155,969,358        Pedestrian 0.86
+person       person      0.65  937,156,994,339        Pedestrian 0.63
+person       person      0.74  964,164,1026,324       Cyclist 0.28
+bicycle      cyclist     0.87  989,217,1138,312       Cyclist 0.40
+person       person      0.83  995,144,1093,291       Cyclist 0.41
+car          vehicle     0.69  1062,186,1153,221      Car 0.53
+car          vehicle     0.58  1131,188,1184,224      Car 0.29
+person       person      0.89  1143,149,1223,356      Pedestrian 0.82
+
+=== Faster R-CNN: 36 predictions >= 0.3 ===
+native       unified    score  box x1,y1,x2,y2        best GT (IoU)
+bicycle      cyclist     0.88  23,175,61,211          none
+motorcycle   vehicle     0.40  79,174,120,202         none
+bicycle      cyclist     0.48  81,172,122,202         none
+person       person      1.00  158,153,192,230        Pedestrian 0.83
+person       person      0.89  182,151,198,198        Pedestrian 0.77
+person       person      0.77  196,163,208,194        Pedestrian 0.10
+person       person      0.70  205,166,217,194        Pedestrian 0.02
+person       person      0.98  221,155,238,206        Pedestrian 0.66
+person       person      1.00  254,156,275,208        Pedestrian 0.78
+bicycle      cyclist     0.67  271,176,286,196        Pedestrian 0.03
+bicycle      cyclist     0.92  274,177,301,195        none
+person       person      0.55  325,162,336,185        none
+person       person      0.83  432,162,441,186        DontCare 0.57
+person       person      0.98  494,167,514,215        Cyclist 0.48
+bicycle      cyclist     0.98  495,189,513,230        Cyclist 0.25
+bicycle      cyclist     0.96  525,191,547,228        Cyclist 0.23
+person       person      0.97  529,164,549,209        Cyclist 0.28
+person       person      0.97  551,170,564,206        Cyclist 0.10
+car          vehicle     0.82  572,169,582,178        Pedestrian 0.01
+person       person      1.00  580,157,622,281        Pedestrian 0.74
+person       person      1.00  618,157,661,274        Pedestrian 0.72
+person       person      1.00  648,157,707,302        Pedestrian 0.80
+person       person      0.99  693,154,744,290        Pedestrian 0.23
+bench        (dropped)   0.78  842,217,902,251        Pedestrian 0.06
+person       person      1.00  862,152,965,359        Pedestrian 0.83
+person       person      0.98  938,157,989,339        Pedestrian 0.61
+person       person      0.96  960,163,1022,327       Cyclist 0.28
+bicycle      cyclist     0.35  983,224,1029,289       Cyclist 0.08
+bicycle      cyclist     0.99  994,189,1139,311       Cyclist 0.50
+backpack     (dropped)   0.38  995,166,1037,218       Car 0.23
+person       person      0.99  998,143,1088,290       Cyclist 0.37
+car          vehicle     0.98  1049,184,1155,222      Car 0.65
+bicycle      cyclist     0.37  1049,213,1139,311      Cyclist 0.25
+car          vehicle     0.92  1135,187,1184,226      Car 0.29
+person       person      1.00  1143,152,1223,357      Pedestrian 0.80
+person       person      0.38  1183,157,1207,191      Pedestrian 0.04
+Loading weights:   0%|          | 0/764 [00:00<?, ?it/s]Loading weights:  73%|███████▎  | 554/764 [00:00<00:00, 5532.35it/s]Loading weights: 100%|██████████| 764/764 [00:00<00:00, 5344.51it/s]
+
+=== RT-DETR: 31 predictions >= 0.3 ===
+native       unified    score  box x1,y1,x2,y2        best GT (IoU)
+motorbike    vehicle     0.57  24,177,61,211          none
+bicycle      cyclist     0.34  24,177,61,211          none
+bicycle      cyclist     0.38  25,185,60,211          none
+motorbike    vehicle     0.48  78,176,122,203         none
+bicycle      cyclist     0.39  157,188,191,231        Pedestrian 0.46
+person       person      0.81  157,154,190,231        Pedestrian 0.79
+person       person      0.34  182,152,199,198        Pedestrian 0.78
+bicycle      cyclist     0.39  219,178,235,206        Pedestrian 0.39
+person       person      0.53  220,156,238,207        Pedestrian 0.69
+bicycle      cyclist     0.61  252,178,274,208        Pedestrian 0.54
+person       person      0.65  255,155,276,207        Pedestrian 0.71
+bicycle      cyclist     0.47  274,177,300,194        none
+person       person      0.70  493,165,513,231        Cyclist 0.45
+bicycle      cyclist     0.45  524,188,548,228        Cyclist 0.28
+person       person      0.67  524,165,549,228        Cyclist 0.47
+person       person      0.37  551,171,565,206        Cyclist 0.11
+person       person      0.86  580,157,621,280        Pedestrian 0.75
+person       person      0.84  618,157,660,274        Pedestrian 0.74
+person       person      0.88  645,159,708,303        Pedestrian 0.85
+person       person      0.84  690,156,740,289        Pedestrian 0.26
+bench        (dropped)   0.36  839,206,902,259        Pedestrian 0.10
+person       person      0.82  863,153,976,344        Pedestrian 0.89
+person       person      0.48  940,161,991,340        Pedestrian 0.59
+person       person      0.46  946,163,1021,330       Pedestrian 0.40
+person       person      0.38  965,165,1006,245       Car 0.30
+bicycle      cyclist     0.86  985,219,1137,313       Cyclist 0.40
+person       person      0.83  996,144,1083,292       Cyclist 0.36
+car          vehicle     0.87  1060,187,1156,223      Car 0.58
+car          vehicle     0.33  1125,187,1184,224      Car 0.33
+person       person      0.89  1144,151,1224,357      Pedestrian 0.80
+car          vehicle     0.58  1149,189,1184,224      Car 0.19
